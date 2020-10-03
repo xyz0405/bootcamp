@@ -4,8 +4,8 @@ block content
     #navbar.right
       .navbar-item-wrap
         if isSuperAdmin
-            a(href='/admin/manage?token=' + token).quiet-link.navbar-item Manage Coupons
-            a(href='/admin/users?token=' + token).quiet-link.navbar-item Create User
+            a(href='/admin/manage?token=#{token}').quiet-link.navbar-item Manage Coupons
+            a(href='/admin/users?token=#{token}').quiet-link.navbar-item Create User
         a(href='/logout').quiet-link.navbar-item Logout
     form#js-coupon-form.form
         h1.form-title Create Coupon

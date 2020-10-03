@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const bcrypt = require('bcrypt-nodejs');
+const validator = require('email-validator');
 
 var userSchema = new Schema({
         firstName: {type: String, trim: true},
@@ -34,7 +35,6 @@ userSchema.pre('save', function(callback) {
             return callback(new Error('Missing password'));
         if (!this.companyName)
             return callback(new Error('Missing companyName'));
-
         if (this.isModified('hash'))
             this.hash = bcrypt.hashSync(this.hash);
     }
@@ -45,6 +45,9 @@ userSchema.pre('save', function(callback) {
         if (!this.phoneProvider)
             return callback(new Error('Missing phoneProvider'));
     }
+
+    if (this.email && !validator.validate(this.email))
+        return callback(new Error('Invalid email'));
 
     // validate phone
     if (this.phone) {
@@ -75,10 +78,13 @@ userSchema.virtual('name').get(function() {
 
 // methods for validating password
 userSchema.methods.comparePassword = function(pw, callback) {
-	bcrypt.compare(pw, this.hash, function(err, isMatch) {
-		if (err) return callback(err);
-		callback(null, isMatch);
-	});
+    bcrypt.compare(pw, this.hash, (err, isMatch) => {
+        if (err) return callback(err);
+        callback(null, isMatch);
+    });
+};
+userSchema.methods.comparePasswordSync = function(pw) {
+    return bcrypt.compareSync(pw, this.hash);
 };
 
 var User = mongoose.model('User', userSchema);

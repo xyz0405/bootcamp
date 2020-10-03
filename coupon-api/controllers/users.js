@@ -1,6 +1,6 @@
 const User = require('../models/schemas/user');
 
-exports.getUsers = (req, res, next) => {
+exports.getAllUsers = (req, res, next) => {
     User.find({}, (err, users) => {
         if (err) return next(err);
         res.json(users);
@@ -81,6 +81,7 @@ exports.createUser = (req, res, next) => {
     });
 };
 
+// TODO validation
 exports.updateUser = (req, res, next) => {
     User.findOneAndUpdate(req.params.id, req.body, (err, user) => {
         if (err) return next(err);
@@ -89,6 +90,7 @@ exports.updateUser = (req, res, next) => {
     });
 };
 
+// TODO auth
 exports.deleteUserById = (req, res, next) => {
     User.findOneAndRemove(req.params.id, (err, user) => {
         if (err) return next(err);
@@ -97,6 +99,7 @@ exports.deleteUserById = (req, res, next) => {
     });
 };
 
+// TODO auth
 exports.deleteUserByPhone = (req, res, next) => {
     User.findOneAndRemove({phone: req.params.phone}, (err, user) => {
         if (err) return next(err);

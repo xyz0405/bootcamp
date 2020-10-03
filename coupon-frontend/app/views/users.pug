@@ -1,0 +1,42 @@
+extends template
+
+block content
+    #navbar.right
+      .navbar-item-wrap
+        a(href='/admin/manage?token=#{token}').quiet-link.navbar-item Manage Coupons
+        a(href='/admin/coupons?token=#{token}').quiet-link.navbar-item Create Coupon
+        a(href='/logout').quiet-link.navbar-item Logout
+    form#js-user-form.form
+        h1.form-title Create User
+        #js-error-message.error-message
+        input.form-input.half(type='text' name='firstName' placeholder='First name')
+        input.form-input.half(type='text' name='lastName' placeholder='Last name')
+        input.form-input(type='number' name='classYear' placeholder='Class year')
+        input.form-input(type='email' name='email' placeholder='Email'
+                onFocus='clearError(this)' onBlur='validateEmail(this, form.isAdmin.checked || form.isSuperAdmin.checked)')
+        input.form-input(type='phone' name='phone' placeholder='Phone number'
+                onFocus='clearError(this)' onBlur='validatePhone(this)')
+        select.form-input.half(name='phoneProvider' onFocus='clearError(this)'
+                onchange='validateProvider()')
+            option(value='null') --Select Provider--
+            -for(var i = 0; i < providers.length; i++)
+                -var p = providers[i];
+                option(value='#{p.name}')= p.longName
+            option(value='other') Other
+        input.form-input.half(type='text' name='other-provider' placeholder='Other'
+            style='display:none' onFocus='clearError(this)'
+            onBlur='validateProvider()')
+        div
+            label.form-input.half #[input(type='checkbox' name='isAdmin' onchange='toggleAdminInfo()')] Admin
+            label.form-input.half #[input(type='checkbox' name='isSuperAdmin' onchange='toggleAdminInfo()')] Super-Admin
+        div#js-admin-info.hidden
+            input.form-input(type='password' name='password' placeholder='Password' onfocus='clearError(this)')
+            input.form-input(type='password' name='passwordConfirm' placeholder='Confirm Password' onfocus='clearError(this)')
+            input.form-input(type='text' name='companyName' placeholder='Company Name' onfocus='clearError(this)')
+        button.form-input.button(type='button' onclick='submitUser()') Submit
+    .modal#js-success
+        .modal-content
+            h2 User successfully added
+
+block postScript
+    script submitOnEnterKey(submitUser);

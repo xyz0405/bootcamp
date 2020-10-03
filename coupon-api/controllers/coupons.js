@@ -39,7 +39,10 @@ exports.getCouponById = (req, res, next) => {
     });
 };
 
+// TODO validation
 exports.createCoupon = (req, res, next) => {
+    if (!req.body.postedBy) req.body.postedBy = req.user.id;
+    if (!req.body.companyName) req.body.companyName = req.user.companyName;
     var newCoupon = new Coupon(req.body);
     newCoupon.save((err, coupon) => {
         if (err) return next(err);
@@ -58,6 +61,8 @@ exports.approveCoupon = (req, res, next) => {
     .catch((err) => next(err));
 };
 
+
+// TODO verification
 exports.updateCoupon = (req, res, next) => {
     Coupon.findOneAndUpdate({id: req.params.id}, req.body, (err, coupon) => {
         if (err) return next(err);
@@ -65,6 +70,7 @@ exports.updateCoupon = (req, res, next) => {
     });
 };
 
+// TODO auth
 exports.deleteCouponById = (req, res, next) => {
     Coupon.findByIdAndRemove(req.params.id, (err, coupon) => {
         if (err) return next(err);

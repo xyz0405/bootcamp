@@ -3,7 +3,7 @@ module.exports = {
     dbUrl: 'localhost:5000',
     
     // secret for creating tokens
-    secret: 'ThisIsDefinitelyNotTheSecret',
+    secret: 'reughdjfbxmdgvhbgakbhjsadf',
 
     // mail options, also uses for init script to create first superAdmin
     // Gmail has a limit of 500 recipients a day

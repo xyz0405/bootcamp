@@ -1,0 +1,20 @@
+extends template
+
+block content
+    #navbar.right
+      .navbar-item-wrap
+        a(href='/admin/coupons?token=#{token}').quiet-link.navbar-item Create Coupon
+        a(href='/admin/users?token=#{token}').quiet-link.navbar-item Create User
+        a(href='/logout').quiet-link.navbar-item Logout
+
+    #js-unapproved-coupons
+        h1.center Unapproved Coupons
+    #js-active-coupons
+        h1.center Active Coupons
+
+    .modal#js-success
+        .modal-content
+            h2 Successfully sent texts
+            #js-info
+
+    script(src='/js/manage.min.js')

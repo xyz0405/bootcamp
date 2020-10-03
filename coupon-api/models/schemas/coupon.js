@@ -11,7 +11,7 @@ var couponSchema = new Schema({
         clicks: {type: [Date], default: []},
         views: {type: [Date], default: []},
         redeemed: {type: [Date], default: []},
-        postedBy: Schema.ObjectId, // {type: Schema.ObjectId, ref: 'User', required: true},
+        postedBy: {type: Schema.ObjectId, ref: 'User', required: true},
         approvedDate: Date,
     },
     {

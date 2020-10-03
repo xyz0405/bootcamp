@@ -11,36 +11,86 @@ var transporter = nodemailer.createTransport({
     }
 });
 
-exports.sendCouponById = function(req, res, next) {
+exports.sendAllCouponsToAllUsers = (req, res, next) => {
+    var now = new Date();
     Promise.all([
-        User.find({ phone: { $exists: true } }).exec(),
-        Coupon.findById(req.params.id).exec()
-    ]).then(function(results) {
-        var users = results[0];
-        var coupon = results[1];
+        User.find({phone: {$exists: true}}),
+        Coupon.find({
+            $and: [
+                { approvedDate: {$exists: true} },
+                { startDate: {$lt: now} },
+                { $or: [
+                    { endDate: {$gt: now} },
+                    { endDate: {$exists: false} },
+                ]}
+            ]
+        })
+    ])
+    .then((values) => {
+        if (!values[0].length || !values[1].length)
+            return res.sendStatus(200);
+        var users = values[0];
+        var coupons = values[1];
 
+        var emails = buildEmailArray(users);
+        if (!emails.length) return res.sendStatus(200);
+
+        // build list of coupons
+        var texts = [];
+        for (var i = 0; i < coupons.length; i++) {
+            let c = coupons[i];
+            if (c.name)
+                texts.push(`${c.name}: ${c.url}`);
+            else if (c.compayName)
+                texts.push(`${c.companyName}: ${c.url}`);
+            else
+                texts.push(c.url);
+        }
+
+        // build text
+        var mailConfig = {
+            from: `"${config.emailFromName}" <${config.emailFromAddress}>`,
+            to: emails.join(', '),
+            subject: 'New Coupons',
+            text: texts.join('\n'),
+        };
+
+        transporter.sendMail(mailConfig, (err, info) => {
+            if (err) return next(err);
+            return res.json(info);
+        });
+    })
+    .catch((err) => next(err));
+};
+
+exports.sendCouponById = (req, res, next) => {
+    var now = new Date();
+    Promise.all([
+        User.find({phone: {$exists: true}}).exec(),
+        Coupon.findById(req.params.id).exec()
+    ])
+    .then((values) => {
+        var users = values[0];
+        var coupon = values[1];
         if (!coupon) return res.status(404).send('No coupon with that ID');
         if (!users.length) return res.sendStatus(200);
 
-        var text = coupon.companyName + ': ' + coupon.name + '\n' + coupon.url;
+        var emails = buildEmailArray(users);
+        if (!emails.length) return res.sendStatus(200);
 
-		var mailOptions = {
-			from: '"' + config.emailFromName + '" <' + config.emailFromAddress + '>',
-			to: buildEmailArray(users).join(', '),
-			subject: 'New Coupon',
-			text: text
-		};
+        var text = `${coupon.companyName}: ${coupon.name}\n${coupon.url}`
 
-        return transporter.sendMail(mailOptions);
-    }).then(function(mailInfo) {
-        return res.json(mailInfo);
-    }).catch(function(err) { return next(err); });
+        var mailConfig = {
+            from: `"${config.emailFromName}" <${config.emailFromAddress}>`,
+            to: emails.join(', '),
+            subject: 'New Coupon',
+            text: text
+        };
+
+        return transporter.sendMail(mailConfig);
+    }).then((mailInfo) => res.json(mailInfo))
+    .catch((err) => next(err));
 };
-
-exports.sendAllCouponsToAllUsers = function(req, res, next) {
-    return res.sendStatus(200);
-};
-
 
 function buildEmailArray(users) {
     var emails = [];

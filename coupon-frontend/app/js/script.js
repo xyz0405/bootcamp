@@ -98,31 +98,30 @@ function submitForm() {
     .catch(submitError);
 }
 
-// TODO
 function submitLogin() {
-    var errorMessage = ''
+    var errorMessage = '';
     if (!form.email.value) {
         error(form.email);
-        errorMessage += 'Missing email!'
+        errorMessage = 'Missing email.';
     }
     if (!form.password.value) {
         error(form.password);
-        if (errorMessage) errorMessage += '<br />'
-        errorMessage += 'Missing password!'
+        if (errorMessage) errorMessage += '</br>';
+        errorMessage += 'Missing password.';
     }
     if (errorMessage) return displayError(errorMessage);
-    
     var data = {
         email: form.email.value,
         password: form.password.value
     };
 
     fetch('/login', {
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json'
+        },
         method: 'POST',
         body: JSON.stringify(data)
-    })
-    .then(function(res) {
+    }).then(function(res) {
         if (!res.ok) return submitError(res);
         else return res.json().then(function(result) {
             localStorage.token = result.token;
@@ -132,6 +131,117 @@ function submitLogin() {
 }
 
 function submitCouponForm() {
+    var errorMessage = '';
+    var data = {};
+    if (!form.name.value) {
+        errorMessage = 'Please enter coupon name.';
+        error(form.name);
+    }
+    data.name = form.name.value;
+    if (!validateUrl(form.url, true)) {
+        if (errorMessage) errorMessage += '<br/>';
+        errorMessage += 'Please enter valid coupon url.';
+        error(form.url);
+    }
+    data.url = form.url.value;
+    var startDate = getDate(document.getElementsByName('startDate')[0]);
+    if (!startDate) {
+        if (errorMessage) errorMessage += '</br>'
+        errorMessage += 'Please enter valid start date.'
+        error(document.getElementsByName('startDate')[0]);
+    }
+    data.startDate = startDate;
+    if (form.hasEndDate.checked) {
+        var endDate = getDate(document.getElementsByName('endDate')[0]);
+        if (!endDate) {
+            if (errorMessage) errorMessage += '</br>'
+            errorMessage += 'Please enter valid expiration date.'
+            error(document.getElementsByName('endDate')[0]);
+        }
+        data.endDate = endDate;
+    }
+    if (form.companyName.value) data.companyName = form.companyName.value;
+
+    if (errorMessage) return displayError(errorMessage);
+
+    fetch('/admin/coupons', {
+        headers: {
+            'Content-Type': 'application/json',
+            'x-access-token': localStorage.token,
+        },
+        method: 'POST',
+        body: JSON.stringify(data)
+    }).then(submitSuccess)
+    .catch(submitError);
+}
+
+function submitUser() {
+    // if not admin, just submit as user form
+    if (!form.isAdmin.checked && !form.isSuperAdmin.checked)
+        return submitForm();
+
+    var data = {};
+    var errorMessage = '';
+    if (form.firstName.value) data.firstName = form.firstName.value;
+    if (form.lastName.value) data.lastName = form.lastName.value;
+    if (form.classYear.value) data.classYear = form.classYear.value;
+    if (form.isAdmin.checked) data.isAdmin = true;
+    if (form.isSuperAdmin.checked) data.isSuperAdmin = true;
+    if (!validateEmail(form.email, true)) {
+        errorMessage += 'Email address is invalid.';
+    }
+    data.email = form.email.value;
+
+    if (form.phone.value) {
+        var phone = validatePhone(form.phone);
+        if (!phone) {
+            if (errorMessage) errorMessage += '</br>';
+            errorMessage += 'Please enter valid phone number.';
+        }
+        data.phone = phone;
+        if (!validateProvider()) {
+            if (errorMessage) errorMessage += '</br>';
+            errorMessage += 'Please select phone provider.';
+        }
+        data.phoneProvider = form.phoneProvider.value;
+        if (data.phoneProvider === 'other')
+            data['other-provider'] = form['other-provider'].value;
+    }
+
+    if (!form.password.value) {
+        error(form.password);
+        if (errorMessage) errorMessage += '<br/>';
+        errorMessage += 'Please include password.';
+    }
+    if (!form.passwordConfirm.value) {
+        error(form.passwordConfirm);
+        if (errorMessage) errorMessage += '<br/>';
+        errorMessage += 'Please confirm password.';
+    }
+    else if (form.password.value !== form.passwordConfirm.value) {
+        error(form.passwordConfirm);
+        if (errorMessage) errorMessage += '<br/>';
+        errorMessage += "Passwords don't match.";
+    }
+    if (!form.companyName.value) {
+        error(form.companyName);
+        if (errorMessage) errorMessage += '<br/>';
+        errorMessage += 'Please include company name.';
+    }
+    data.password = form.password.value;
+    data.companyName = form.companyName.value;
+
+    if (errorMessage) return displayError(errorMessage);
+
+    fetch('/admin/users', {
+        headers: {
+            'Content-Type': 'application/json',
+            'x-access-token': localStorage.token
+        },
+        method: 'POST',
+        body: JSON.stringify(data)
+    }).then(submitSuccess)
+    .catch(submitError);
 }
 
 // =============================================================
